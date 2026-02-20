@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="EclipseModuleManager">
+    <libelement value="file://$MODULE_DIR$/libs/commons-io-2.5-javadoc.jar" />
+    <libelement value="file://$MODULE_DIR$/libs/commons-io-2.5.jar" />
+    <libelement value="file://$MODULE_DIR$/libs/kxml2-2.3.0.jar" />
+    <libelement value="file://$MODULE_DIR$/libs/sqlite-jdbc-3.34.0.jar" />
+    <libelement value="file://$MODULE_DIR$/libs/jsoup-1.15.4.jar" />
+    <src_description expected_position="0">
+      <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
+    </src_description>
+  </component>
+</module>
