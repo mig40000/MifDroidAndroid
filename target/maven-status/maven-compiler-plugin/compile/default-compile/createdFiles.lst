@@ -26,3 +26,4 @@ de/potsdam/slicer/Slicer.class
 de/potsdam/ApplicationDetails/ApplicationDetails.class
 de/potsdam/main/ApplicationAnalysis.class
 de/potsdam/loadurl/StringOptimizer.class
+de/potsdam/slicer/Slicer$MethodCallContext.class

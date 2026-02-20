@@ -104,12 +104,12 @@ public class LoadUrlDB {
 	}
 	
 	/**
-	 * Initializes the database by clearing all existing data from analysis tables.
+	 * Initializes the database by creating tables if they don't exist, then clearing all existing data.
 	 * This is typically called at the start of a new analysis session.
 	 */
 	public static void initDB() {
 
-		System.out.println("Initializing database - clearing existing data...");
+		System.out.println("Initializing database - creating tables and clearing existing data...");
 
 		Connection conn = null;
 
@@ -121,6 +121,9 @@ public class LoadUrlDB {
 			}
 
 			conn.setAutoCommit(false);
+
+			// Create tables if they don't exist
+			createTablesIfNotExist(conn);
 
 			// Clear jsdetails table
 			clearTable(conn, TABLE_JS_DETAILS);
@@ -154,6 +157,75 @@ public class LoadUrlDB {
 		} finally {
 			// Clean up connection
 			closeConnection(conn);
+		}
+	}
+
+	/**
+	 * Creates database tables if they don't already exist.
+	 * Sets up the schema for storing JavaScript analysis results.
+	 *
+	 * @param conn Active database connection
+	 */
+	private static void createTablesIfNotExist(Connection conn) {
+		if (conn == null) {
+			return;
+		}
+
+		try {
+			System.out.println("Creating tables if they don't exist...");
+
+			// Create jsdetails table for raw JavaScript strings
+			String createJsDetailsTable = "CREATE TABLE IF NOT EXISTS " + TABLE_JS_DETAILS + " ("
+					+ "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+					+ "PACKAGE_NAME TEXT, "
+					+ "ACTIVITY_NAME TEXT, "
+					+ "PASS_STRING TEXT"
+					+ ")";
+
+			// Create webview_prime table with enhanced schema
+			String createWebviewPrimeTable = "CREATE TABLE IF NOT EXISTS " + TABLE_WEBVIEW_PRIME + " ("
+					+ "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+					+ "appName TEXT, "
+					+ "initiatingClass TEXT, "
+					+ "bridgeClass TEXT, "
+					+ "intefaceObject TEXT, "
+					+ "bridgeMethods TEXT, "
+					+ "initiatingMethod TEXT, "
+					+ "methodCount INTEGER, "
+					+ "timestamp INTEGER, "
+					+ "readableInitiatingClass TEXT, "
+					+ "readableBridgeClass TEXT"
+					+ ")";
+
+			// Create webview_new table with same schema as webview_prime
+			String createWebviewNewTable = "CREATE TABLE IF NOT EXISTS " + TABLE_WEBVIEW_NEW + " ("
+					+ "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+					+ "appName TEXT, "
+					+ "initiatingClass TEXT, "
+					+ "bridgeClass TEXT, "
+					+ "intefaceObject TEXT, "
+					+ "bridgeMethods TEXT, "
+					+ "initiatingMethod TEXT, "
+					+ "methodCount INTEGER, "
+					+ "timestamp INTEGER, "
+					+ "readableInitiatingClass TEXT, "
+					+ "readableBridgeClass TEXT"
+					+ ")";
+
+			try (Statement stmt = conn.createStatement()) {
+				stmt.executeUpdate(createJsDetailsTable);
+				System.out.println("Created or verified jsdetails table");
+
+				stmt.executeUpdate(createWebviewPrimeTable);
+				System.out.println("Created or verified webview_prime table");
+
+				stmt.executeUpdate(createWebviewNewTable);
+				System.out.println("Created or verified webview_new table");
+			}
+
+		} catch (SQLException e) {
+			System.out.println("Error creating tables: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 

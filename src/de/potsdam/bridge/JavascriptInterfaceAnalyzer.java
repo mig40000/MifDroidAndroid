@@ -96,30 +96,69 @@ public class JavascriptInterfaceAnalyzer {
                 String interfaceName = findConstString(classLines, i, methodStart, nameRegister, currentMethod);
                 String bridgeClass = findObjectType(classLines, i, methodStart, objectRegister, currentMethod);
 
-                // If still unresolved, use typed placeholders based on addJavascriptInterface signature
-                if (line.contains("addJavascriptInterface(Ljava/lang/Object;Ljava/lang/String;)V")) {
-                    if (interfaceName == null || interfaceName.isEmpty() || interfaceName.equals(nameRegister)) {
-                        interfaceName = "param:String";
-                    }
-                    if (bridgeClass == null || bridgeClass.isEmpty() || bridgeClass.equals(objectRegister)) {
-                        bridgeClass = "Ljava/lang/Object;";
-                    }
-                }
-
                 System.out.println("[DEBUG] Found addJavascriptInterface:");
                 System.out.println("  Class: " + className);
                 System.out.println("  Method: " + currentMethod);
-                System.out.println("  Interface Name: " + (interfaceName != null ? interfaceName : "NULL"));
-                System.out.println("  Bridge Class: " + (bridgeClass != null ? bridgeClass : "NULL"));
+                System.out.println("  Interface Name (initial): " + (interfaceName != null && !interfaceName.isEmpty() ? interfaceName : "(empty)"));
+                System.out.println("  Bridge Class: " + (bridgeClass != null && !bridgeClass.isEmpty() ? bridgeClass : "(empty)"));
+                System.out.println("  nameRegister: " + nameRegister);
+
+                // Check if interface name is actually resolved (not empty, not a parameter placeholder)
+                boolean isInterfaceNameResolved = interfaceName != null
+                        && !interfaceName.isEmpty()
+                        && !interfaceName.startsWith("param:")
+                        && !interfaceName.equals(nameRegister);
+
+                System.out.println("  Initial Resolution Success: " + isInterfaceNameResolved);
+
+                // If interface name is unresolved, try advanced tracing methods
+                if (!isInterfaceNameResolved) {
+                    System.out.println("[DEBUG] Initial resolution failed, trying advanced methods...");
+
+                    // Level 2: Try advanced parameter tracing
+                    if (nameRegister != null) {
+                        System.out.println("[DEBUG] Level 2: Attempting advanced tracing for register: " + nameRegister);
+                        String advancedResolution = findInterfaceNameFromParameter(classLines, i, methodStart, nameRegister, currentMethod);
+                        if (advancedResolution != null && !advancedResolution.isEmpty() && !advancedResolution.startsWith("param:")) {
+                            System.out.println("[DEBUG] Level 2 SUCCESS: Resolved to: " + advancedResolution);
+                            interfaceName = advancedResolution;
+                            isInterfaceNameResolved = true;
+                        } else {
+                            System.out.println("[DEBUG] Level 2 FAILED: " + (advancedResolution == null ? "null" : (advancedResolution.isEmpty() ? "empty" : advancedResolution)));
+                        }
+                    }
+
+                    // Level 3: Try fallback heuristic search if Level 2 failed
+                    if (!isInterfaceNameResolved && nameRegister != null) {
+                        System.out.println("[DEBUG] Level 3: Trying fallback - searching for const-string near addJavascriptInterface call");
+                        String fallbackResolution = findConstStringNearInvoke(classLines, i, nameRegister);
+                        if (fallbackResolution != null && !fallbackResolution.isEmpty() && !fallbackResolution.startsWith("param:")) {
+                            System.out.println("[DEBUG] Level 3 SUCCESS: Found via fallback heuristic: " + fallbackResolution);
+                            interfaceName = fallbackResolution;
+                            isInterfaceNameResolved = true;
+                        } else {
+                            System.out.println("[DEBUG] Level 3 FAILED: " + (fallbackResolution == null ? "null" : (fallbackResolution.isEmpty() ? "empty" : fallbackResolution)));
+                        }
+                    }
+                }
+
+                // Final result
+                if (!isInterfaceNameResolved) {
+                    System.out.println("[DEBUG] All resolution attempts failed - storing with EMPTY interfaceObject");
+                    interfaceName = "";
+                } else {
+                    System.out.println("[DEBUG] RESOLUTION SUCCESSFUL: " + interfaceName);
+                }
 
                 String methodList = buildMethodList(annotatedMethods.get(bridgeClass));
                 System.out.println("  Bridge Methods Count: " + (methodList != null && !methodList.isEmpty() ? "found" : "empty"));
+                System.out.println("  Final Interface Object: " + (interfaceName != null && !interfaceName.isEmpty() ? interfaceName : "(empty)"));
 
                 try {
                     LoadUrlDB.storeBridgeDetails(
                             appAnalyzer.getAppDetails().getAppName(),
                             className,
-                            bridgeClass,
+                            bridgeClass != null ? bridgeClass : "",
                             interfaceName,
                             methodList,
                             currentMethod
@@ -199,15 +238,36 @@ public class JavascriptInterfaceAnalyzer {
                 return fromCaller;
             }
         }
-        // If register is a parameter and no const-string was found, add a typed placeholder
-        String inferredParamType = inferParamType(methodLine, currentRegister);
-        if (!inferredParamType.isEmpty()) {
-            return "param:" + toReadableType(inferredParamType);
+
+        // If still not found and it's a parameter, search for ANY const-string near the addJavascriptInterface call
+        // This handles cases where the interface name is loaded into a temp register before being passed as parameter
+        if (register != null && register.startsWith("p")) {
+            int searchStart = Math.max(methodStart, index - 20);
+            int searchEnd = Math.min(lines.size(), index + 2);
+
+            for (int i = searchStart; i <= searchEnd; i++) {
+                if (i < 0 || i >= lines.size()) continue;
+                String line = lines.get(i);
+                if (line == null) continue;
+
+                // Look for any const-string that might be the interface name
+                if ((line.contains("const-string ") || line.contains("const-string/jumbo ")) && line.contains("\"")) {
+                    int firstQuote = line.indexOf('"');
+                    int lastQuote = line.lastIndexOf('"');
+                    if (firstQuote >= 0 && lastQuote > firstQuote) {
+                        String value = line.substring(firstQuote + 1, lastQuote).trim();
+                        // Simple filter: looks like interface name if it's short, starts with letter, mostly alphanumeric
+                        if (value.length() > 0 && value.length() < 100
+                            && Character.isLetterOrDigit(value.charAt(0))
+                            && !value.contains("://") && !value.startsWith("http") && !value.startsWith("android")) {
+                            return value;
+                        }
+                    }
+                }
+            }
         }
-        if (currentRegister != null && currentRegister.startsWith("p")) {
-            return "param:" + currentRegister;
-        }
-        return currentRegister != null ? currentRegister : "";
+
+        return "";
     }
 
     private static String findObjectType(List<String> lines, int index, int methodStart, String register, String methodLine) {
@@ -652,4 +712,134 @@ public class JavascriptInterfaceAnalyzer {
         }
         return types;
     }
+
+	/**
+	 * Finds interface name from a parameter register by tracing through inter-procedural calls.
+	 * When the interface name is passed as a parameter, this tries to trace it back to the caller.
+	 *
+	 * @param classLines List of all Smali lines in the class
+	 * @param index Current index in the addJavascriptInterface call
+	 * @param methodStart Index where the method starts
+	 * @param paramRegister The parameter register (e.g., p1, p2)
+	 * @param methodLine The method signature
+	 * @return Resolved interface name or empty string if unresolved
+	 */
+	private static String findInterfaceNameFromParameter(List<String> classLines, int index, int methodStart, String paramRegister, String methodLine) {
+		// Try to find where this parameter is assigned within the method
+		for (int i = index; i >= methodStart; i--) {
+			String line = classLines.get(i);
+			if (line == null) continue;
+
+			// Look for move-object instructions that assign to this parameter
+			if (line.contains("move-object") && line.contains(paramRegister)) {
+				String[] parts = line.split(",");
+				if (parts.length >= 2) {
+					String sourceReg = parts[parts.length - 1].trim();
+					// Recursively trace the source register
+					return findConstString(classLines, i, methodStart, sourceReg, methodLine);
+				}
+			}
+		}
+
+		// Try to find const-string assignments nearby
+		for (int i = index; i >= Math.max(methodStart, index - 20); i--) {
+			String line = classLines.get(i);
+			if (line == null) continue;
+
+			if ((line.contains("const-string " + paramRegister + ",")
+					|| line.contains("const-string/jumbo " + paramRegister + ","))
+					&& line.contains("\"")) {
+				int firstQuote = line.indexOf('"');
+				int lastQuote = line.lastIndexOf('"');
+				if (firstQuote >= 0 && lastQuote > firstQuote) {
+					return line.substring(firstQuote + 1, lastQuote).trim();
+				}
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Finds const-string values near the addJavascriptInterface invocation.
+	 * This is a fallback method that searches for string constants in the vicinity of the call.
+	 *
+	 * @param classLines List of all Smali lines in the class
+	 * @param invokeIndex Index of the addJavascriptInterface invocation
+	 * @param nameRegister The name parameter register
+	 * @return Found const-string value or empty string if none found
+	 */
+	private static String findConstStringNearInvoke(List<String> classLines, int invokeIndex, String nameRegister) {
+		// Search nearby lines (before and after) for const-string that might be the interface name
+		int searchStart = Math.max(0, invokeIndex - 10);
+		int searchEnd = Math.min(classLines.size(), invokeIndex + 5);
+
+		// First, search backwards (more likely to find the setup before the call)
+		for (int i = invokeIndex - 1; i >= searchStart; i--) {
+			String line = classLines.get(i);
+			if (line == null) continue;
+
+			// Look for any const-string, not just for our register
+			if ((line.contains("const-string ") || line.contains("const-string/jumbo "))
+					&& line.contains("\"")) {
+				// Extract the string value
+				int firstQuote = line.indexOf('"');
+				int lastQuote = line.lastIndexOf('"');
+				if (firstQuote >= 0 && lastQuote > firstQuote) {
+					String value = line.substring(firstQuote + 1, lastQuote).trim();
+					// Simple heuristic: interface names are usually short, alphanumeric, camelCase
+					// and don't start with common prefixes like "http", "android", etc.
+					if (isLikelyInterfaceName(value)) {
+						return value;
+					}
+				}
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Simple heuristic to determine if a string looks like a JavaScript interface object name.
+	 * Interface names are typically:
+	 * - Short (less than 50 chars)
+	 * - CamelCase or lowercase identifier
+	 * - Alphanumeric with underscores
+	 * - Don't contain slashes, dots (unless package-qualified)
+	 *
+	 * @param value The string to check
+	 * @return true if the string looks like an interface name
+	 */
+	private static boolean isLikelyInterfaceName(String value) {
+		if (value == null || value.isEmpty()) {
+			return false;
+		}
+
+		// Too long - probably not an interface name
+		if (value.length() > 100) {
+			return false;
+		}
+
+		// Check for common patterns that are NOT interface names
+		if (value.contains("://") || value.startsWith("http") || value.startsWith("file")) {
+			return false; // Looks like a URL
+		}
+
+		if (value.contains("/") && value.length() > 50) {
+			return false; // Looks like a path
+		}
+
+		// Interface names typically start with a letter
+		if (!Character.isLetter(value.charAt(0))) {
+			return false;
+		}
+
+		// Check if it contains mostly word characters
+		long wordCharCount = value.chars().filter(c -> Character.isLetterOrDigit(c) || c == '_').count();
+		if (wordCharCount < (value.length() * 0.8)) {
+			return false; // Too many special characters
+		}
+
+		return true;
+	}
 }

@@ -62,7 +62,13 @@ public class Slicer {
 	public List<String> sources = new LinkedList<String>();
 	public List<String> foundSources = new LinkedList<String>();
 	
-	
+	// ===== NEW: Inter-Procedural Data Flow Tracking =====
+	// Maps: methodSignature -> Map of parameter positions -> source registers
+	private Map<String, Map<Integer, String>> parameterMappings = new HashMap<>();
+	// Tracks method call contexts: caller method -> called method + argument registers
+	private Queue<MethodCallContext> methodCallQueue = new LinkedList<>();
+	// Tracks visited method invocations to avoid infinite loops
+	private Set<String> visitedInvocations = new HashSet<>();
 
 	public Slicer(List<List<String>> class_list, Logger logger, ApplicationDetails app) throws IOException {
 		this.classContent = class_list;
@@ -664,6 +670,11 @@ public class Slicer {
 		this.annotated = 0;
 		this.invoked = 0;
 
+		// ===== NEW: Reset inter-procedural tracking =====
+		this.parameterMappings.clear();
+		this.methodCallQueue.clear();
+		this.visitedInvocations.clear();
+
 	}
 
 	/**
@@ -885,6 +896,9 @@ public class Slicer {
 							SliceMethod invokedMethod = invokedClass.methodMap.get(mname);
 
 							if (invokedMethod != null) {
+								// ===== NEW: Track parameter passing for inter-procedural analysis =====
+								trackParameterPassing(currentMethod, previousUse.line, invokedMethod);
+
 								// add all return statements to the slice
 								for (SliceControlFlow s : invokedMethod.returnList) {
 									m = this.pat.matcher(s.line);
@@ -892,6 +906,26 @@ public class Slicer {
 									if (m.find()) {
 										tempVarName = m.group();
 										tempVar = invokedMethod.varMap.get(tempVarName);
+
+										// ===== NEW: Check if this variable is a parameter =====
+										// If the variable being traced is a parameter, resolve its source
+										if (tempVarName != null && tempVarName.startsWith("p") && !this.trackedSet.contains(tempVar)) {
+											String paramSource = resolveParameterSource(invokedMethod, tempVarName);
+											if (!paramSource.isEmpty()) {
+												System.out.println("[DEBUG] Parameter resolution: " + tempVarName +
+													" in " + invokedMethod.name + " -> " + paramSource +
+													" in " + currentMethod.name);
+												// Add the source register to track
+												SliceVar sourceVar = currentMethod.varMap.get(paramSource);
+												if (sourceVar != null) {
+													SliceVarUse sourceUse = sourceVar.varUseMap.get(previousUse.lineNumber);
+													if (sourceUse != null) {
+														this.registerQueue.add(sourceUse);
+														this.trackedSet.add(sourceVar);
+													}
+												}
+											}
+										}
 
 										if (!this.trackedSet.contains(tempVar) && tempVar != null) {
 											this.registerQueue.add(tempVar.varUseMap.get(s.lineNumber));
@@ -951,4 +985,127 @@ public class Slicer {
 		return null;
 	}
 
+	/**
+	 * Tracks parameter passing when a method is invoked.
+	 * Maps argument registers in the caller to parameter registers in the callee.
+	 *
+	 * @param callerMethod The method making the call
+	 * @param callLine The invoke instruction line
+	 * @param calleeMethod The method being called
+	 */
+	private void trackParameterPassing(SliceMethod callerMethod, String callLine, SliceMethod calleeMethod) {
+		try {
+			// Extract registers from invoke instruction
+			// Format: invoke-* {reg1, reg2, reg3, ...}, ClassName->method(...)RetType
+			int braceStart = callLine.indexOf('{');
+			int braceEnd = callLine.indexOf('}');
+
+			if (braceStart < 0 || braceEnd < 0) {
+				return;
+			}
+
+			String registersPart = callLine.substring(braceStart + 1, braceEnd);
+			String[] argumentRegisters = registersPart.split(",");
+
+			// Extract parameter info from method signature
+			// For instance methods: p0=this, p1=first param, p2=second param, etc.
+			// For static methods: p0=first param, p1=second param, etc.
+			boolean isStatic = calleeMethod.line.contains(" static ");
+			int paramOffset = isStatic ? 0 : 1; // Instance methods have 'this' as p0
+
+			// Map each argument to its corresponding parameter
+			for (int i = 0; i < argumentRegisters.length; i++) {
+				String argumentReg = argumentRegisters[i].trim();
+				int paramIndex = paramOffset + i;
+				String paramReg = "p" + paramIndex;
+
+				// Store this mapping for later reference
+				String methodKey = calleeMethod.className + "->" + calleeMethod.name;
+				if (!parameterMappings.containsKey(methodKey)) {
+					parameterMappings.put(methodKey, new HashMap<>());
+				}
+				parameterMappings.get(methodKey).put(paramIndex, argumentReg);
+
+				System.out.println("[DEBUG] Parameter Mapping: " + methodKey + ": p" + paramIndex + " <- " + argumentReg +
+					" (from caller: " + callerMethod.className + "->" + callerMethod.name + ")");
+			}
+		} catch (Exception e) {
+			// Silent failure - if parameter extraction fails, continue without it
+		}
+	}
+
+	/**
+	 * Resolves a parameter register to its source in the calling method.
+	 * This provides full inter-procedural data flow tracking.
+	 *
+	 * @param method The method containing the parameter
+	 * @param paramReg The parameter register (e.g., p1, p2)
+	 * @return The source register from the caller, or empty string if not found
+	 */
+	private String resolveParameterSource(SliceMethod method, String paramReg) {
+		String methodKey = method.className + "->" + method.name;
+
+		if (parameterMappings.containsKey(methodKey)) {
+			Map<Integer, String> mappings = parameterMappings.get(methodKey);
+			try {
+				int paramNum = Integer.parseInt(paramReg.substring(1));
+				if (mappings.containsKey(paramNum)) {
+					return mappings.get(paramNum);
+				}
+			} catch (NumberFormatException e) {
+				// Invalid parameter format
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Enhanced sliceAt method with full inter-procedural parameter tracking.
+	 * This is the core enhancement that enables complete data flow analysis.
+	 *
+	 * Overload of original sliceAt - adds parameter context tracking
+	 */
+	public void sliceAtWithContext(String className, String methodName, Integer line, String register,
+	                                SliceMethod callerMethod, String callLine) {
+
+		// Track parameter passing if called from another method
+		SliceClass targetClass = this.classMap.get(className);
+		if (targetClass != null && callerMethod != null) {
+			SliceMethod targetMethod = targetClass.methodMap.get(methodName);
+			if (targetMethod != null && callLine != null) {
+				trackParameterPassing(callerMethod, callLine, targetMethod);
+			}
+		}
+
+		// Perform normal slicing with context awareness
+		sliceAt(className, methodName, line, register);
+	}
+
+	/**
+	 * Helper class to represent a method call in context.
+	 * Tracks caller, callee, and argument registers for inter-procedural analysis.
+	 */
+	private static class MethodCallContext {
+		String callerClassName;
+		String callerMethodName;
+		String callLine;
+		String calleeClassName;
+		String calleeMethodName;
+		String[] argumentRegisters;
+
+		MethodCallContext(String callerClassName, String callerMethodName, String callLine,
+						String calleeClassName, String calleeMethodName, String[] argumentRegisters) {
+			this.callerClassName = callerClassName;
+			this.callerMethodName = callerMethodName;
+			this.callLine = callLine;
+			this.calleeClassName = calleeClassName;
+			this.calleeMethodName = calleeMethodName;
+			this.argumentRegisters = argumentRegisters;
+		}
+	}
+
 }
+
+
+

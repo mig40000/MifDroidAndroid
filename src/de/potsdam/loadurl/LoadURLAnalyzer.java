@@ -228,7 +228,8 @@ public class LoadURLAnalyzer {
 				if (fieldValue != null && !fieldValue.isEmpty()) {
 					return fieldValue;
 				}
-				return "iget-object: " + line;
+				// Don't return fallback label - extraction failed
+				System.out.println("[DEBUG] LoadURL: Could not extract iget-object field value");
 			}
 
 			// Case 3: move-result-object - method return value
@@ -242,7 +243,8 @@ public class LoadURLAnalyzer {
 				if (methodResult != null && !methodResult.isEmpty()) {
 					return methodResult;
 				}
-				return "move-result-object: " + line;
+				// Don't return fallback label - extraction failed
+				System.out.println("[DEBUG] LoadURL: Could not extract move-result-object value");
 			}
 
 			// Case 4: sget-object - static field access
@@ -251,48 +253,88 @@ public class LoadURLAnalyzer {
 				if (staticValue != null && !staticValue.isEmpty()) {
 					return staticValue;
 				}
-				return "sget-object: " + line;
+				// Don't return fallback label - extraction failed
+				System.out.println("[DEBUG] LoadURL: Could not extract sget-object field value");
 			}
 
-			// Case 5: move-object - register copy
+			// Case 5: move-object - register copy (recursive)
 			else if (line.contains(targetRegister) && line.contains("move-object")) {
 				String copiedRegister = extractCopiedRegister(line, targetRegister);
 				if (copiedRegister != null && !copiedRegister.isEmpty()) {
+					System.out.println("[DEBUG] LoadURL: Following move-object: " + targetRegister + " <- " + copiedRegister);
 					// Recursively trace the source register
 					return performBackwardSlicing(fileContentArray, index, copiedRegister);
 				}
 			}
 
-			// Case 6: invoke-virtual with return value assignment
-			else if (line.contains(targetRegister) && (line.contains("invoke-") || line.contains("invoke {"))) {
-				String invokeResult = extractInvokeResult(fileContentArray, index, targetRegister);
-				if (invokeResult != null && !invokeResult.isEmpty()) {
-					return invokeResult;
+			// Case 6: invoke-static Return Values (e.g., String.format())
+			else if (line.contains(targetRegister) && line.contains("invoke-static")) {
+				String staticInvokeResult = traceStaticInvokeReturn(fileContentArray, index, line, targetRegister);
+				if (staticInvokeResult != null && !staticInvokeResult.isEmpty()) {
+					System.out.println("[DEBUG] LoadURL: Found invoke-static result: " + staticInvokeResult);
+					return staticInvokeResult;
 				}
 			}
 
-			// Case 7: Check if register is a parameter (starts with 'p')
-			else if (targetRegister.startsWith("p")) {
-				// Try to find where this parameter comes from
-				String parameterValue = traceParameter(fileContentArray, index, targetRegister);
-				if (parameterValue != null && !parameterValue.isEmpty()) {
-					return parameterValue;
+			// Case 7: invoke-virtual with return value assignment
+			else if (line.contains(targetRegister) && line.contains("invoke-virtual")) {
+				String virtualInvokeResult = traceVirtualInvokeReturn(fileContentArray, index, line, targetRegister);
+				if (virtualInvokeResult != null && !virtualInvokeResult.isEmpty()) {
+					System.out.println("[DEBUG] LoadURL: Found invoke-virtual result: " + virtualInvokeResult);
+					return virtualInvokeResult;
 				}
 			}
 
-			// Case 8: Try advanced string concatenation analysis
+			// Case 8: aget/aget-object - array element access
+			else if (line.contains(targetRegister) && (line.contains("aget-object") || line.contains("aget "))) {
+				System.out.println("[DEBUG] LoadURL: Found aget/aget-object: " + line);
+				String arrayResult = traceArrayAccess(fileContentArray, index, line, targetRegister);
+				if (arrayResult != null && !arrayResult.isEmpty()) {
+					return arrayResult;
+				}
+				// Don't return fallback label - extraction failed
+				System.out.println("[DEBUG] LoadURL: Could not extract array element value");
+			}
+
+			// Case 9: new-instance with constructor chain
+			else if (line.contains(targetRegister) && line.contains("new-instance")) {
+				System.out.println("[DEBUG] LoadURL: Found new-instance: " + line);
+				String newInstanceResult = traceNewInstance(fileContentArray, index, line, targetRegister);
+				if (newInstanceResult != null && !newInstanceResult.isEmpty()) {
+					return newInstanceResult;
+				}
+				// Don't return fallback label - extraction failed
+				System.out.println("[DEBUG] LoadURL: Could not extract new-instance value");
+			}
+
+			// Case 10: filled-new-array - array initialization
+			else if (line.contains(targetRegister) && line.contains("filled-new-array")) {
+				System.out.println("[DEBUG] LoadURL: Found filled-new-array: " + line);
+				String filledArrayResult = traceFilledNewArray(fileContentArray, index, line);
+				if (filledArrayResult != null && !filledArrayResult.isEmpty()) {
+					return filledArrayResult;
+				}
+				// Don't return fallback label - extraction failed
+				System.out.println("[DEBUG] LoadURL: Could not extract filled-new-array value");
+			}
+
+			// Case 11: Try advanced string concatenation analysis
 			String concatResult = StringOptimizer.handleStringConcatenation(fileContentArray, index, targetRegister);
 			if (concatResult != null && !concatResult.isEmpty()) {
-				return "Concatenated: " + concatResult;
+				// Return the actual value, not the metadata label
+				System.out.println("[DEBUG] LoadURL: Found concatenated string: \"" + concatResult + "\"");
+				return concatResult;
 			}
 
-			// Case 9: Try string manipulation chain analysis
+			// Case 12: Try string manipulation chain analysis
 			String chainResult = StringOptimizer.analyzeStringManipulationChain(fileContentArray, index, targetRegister);
 			if (chainResult != null && !chainResult.isEmpty()) {
-				return "Manipulation: " + chainResult;
+				// Return the actual value, not the metadata label
+				System.out.println("[DEBUG] LoadURL: Found string manipulation result: \"" + chainResult + "\"");
+				return chainResult;
 			}
 
-			// Case 10: Try comprehensive string analysis
+			// Case 13: Try comprehensive string analysis
 			String comprehensiveResult = StringOptimizer.analyzeStringComprehensive(fileContentArray, index, targetRegister);
 			if (comprehensiveResult != null && !comprehensiveResult.isEmpty()) {
 				return comprehensiveResult;
@@ -305,13 +347,30 @@ public class LoadURLAnalyzer {
 		if (targetRegister != null && targetRegister.startsWith("p")) {
 			String methodSig = getEnclosingMethodSignature(fileContentArray, currentIndex);
 			System.out.println("[DEBUG] LoadURL: Parameter register detected: " + targetRegister + " in method: " + methodSig);
+
+			// Strategy 1: Try caller resolution
 			String fromCaller = resolveFromCallersForString(fileContentArray, methodSig, targetRegister);
-			if (!fromCaller.isEmpty()) {
-				System.out.println("[DEBUG] LoadURL: Resolved from caller: \"" + fromCaller + "\"");
+			if (!fromCaller.isEmpty() && !fromCaller.startsWith("UNRESOLVED")) {
+				System.out.println("[DEBUG] LoadURL: Resolved from caller (Strategy 1): \"" + fromCaller + "\"");
 				return fromCaller;
 			}
-			// Add typed placeholder for unresolved parameters
-			System.out.println("[DEBUG] LoadURL: Could not resolve parameter from caller, returning UNRESOLVED_PARAM");
+
+			// Strategy 2: Look for field assignments related to this parameter
+			String fromField = traceParameterToField(fileContentArray, currentIndex, methodSig, targetRegister);
+			if (!fromField.isEmpty() && !fromField.startsWith("UNRESOLVED")) {
+				System.out.println("[DEBUG] LoadURL: Resolved from field (Strategy 2): \"" + fromField + "\"");
+				return fromField;
+			}
+
+			// Strategy 3: Look for this parameter being used in method calls that return string
+			String fromMethodResult = traceParameterThroughMethods(fileContentArray, currentIndex, methodSig, targetRegister);
+			if (!fromMethodResult.isEmpty() && !fromMethodResult.startsWith("UNRESOLVED")) {
+				System.out.println("[DEBUG] LoadURL: Resolved through method (Strategy 3): \"" + fromMethodResult + "\"");
+				return fromMethodResult;
+			}
+
+			// If all strategies fail, return detailed unresolved info
+			System.out.println("[DEBUG] LoadURL: Could not resolve parameter from any strategy, returning UNRESOLVED_PARAM");
 			return "UNRESOLVED_PARAM: " + targetRegister + " type=String method=" + methodSig;
 		}
 
@@ -321,12 +380,147 @@ public class LoadURLAnalyzer {
 				+ " line=" + currentIndex;
 	}
 
+	private static String traceStaticInvokeReturn(String[] fileContentArray, int index, String line, String targetRegister) {
+		// Format: invoke-static {params}, Ljava/lang/String;->format(...)
+		int methodArrowPos = line.indexOf(";->");
+		if (methodArrowPos < 0) {
+			return "";
+		}
+
+		// Look for common static methods that return strings
+		if (line.contains("String;->format")) {
+			return "String.format(...)";
+		}
+		if (line.contains("Integer;->toString") || line.contains("Long;->toString")) {
+			return "Number.toString()";
+		}
+		if (line.contains("Boolean;->toString")) {
+			return "Boolean.toString()";
+		}
+
+		return "";
+	}
+
+	private static String traceVirtualInvokeReturn(String[] fileContentArray, int index, String line, String targetRegister) {
+		// Format: invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+		int methodArrowPos = line.indexOf(";->");
+		if (methodArrowPos < 0) {
+			return "";
+		}
+
+		// Look for StringBuilder.toString()
+		if (line.contains("StringBuilder;->toString")) {
+			// Check if the previous instruction was append
+			if (index > 0) {
+				String prevLine = fileContentArray[index - 1];
+				if (prevLine.contains("append") && prevLine.contains("StringBuilder")) {
+					return StringOptimizer.string_builder(fileContentArray, index - 1);
+				}
+			}
+			return "StringBuilder.toString()";
+		}
+
+		if (line.contains("String;->concat")) {
+			return "String.concat(...)";
+		}
+
+		if (line.contains("String;->substring")) {
+			return "String.substring(...)";
+		}
+
+		return "";
+	}
+
+	private static String traceArrayAccess(String[] fileContentArray, int index, String line, String targetRegister) {
+		// Format: aget-object vDest, vArray, vIndex
+		// Try to trace what's in the array
+		String[] parts = line.split(",");
+		if (parts.length < 2) {
+			return "";
+		}
+
+		String arrayRegister = parts[1].trim();
+
+		// Look for where the array was initialized
+		for (int i = index - 1; i >= Math.max(0, index - 20); i--) {
+			String searchLine = fileContentArray[i];
+			if (searchLine == null) continue;
+
+			// Look for filled-new-array or new-array
+			if (searchLine.contains(arrayRegister) && searchLine.contains("filled-new-array")) {
+				return traceFilledNewArray(fileContentArray, i, searchLine);
+			}
+		}
+
+		return "";
+	}
+
+	private static String traceNewInstance(String[] fileContentArray, int index, String line, String targetRegister) {
+		// Format: new-instance vDest, Ljava/lang/StringBuilder;
+		// Look ahead for invoke-direct <init>
+		for (int i = index + 1; i < Math.min(fileContentArray.length, index + 10); i++) {
+			String nextLine = fileContentArray[i];
+			if (nextLine == null) continue;
+
+			if (nextLine.contains(targetRegister) && nextLine.contains("invoke-direct") && nextLine.contains("<init>")) {
+				System.out.println("[DEBUG] LoadURL: Found constructor call for new-instance: " + nextLine);
+
+				// If it's StringBuilder, check for subsequent append calls
+				if (line.contains("StringBuilder")) {
+					return StringOptimizer.string_builder(fileContentArray, i);
+				}
+				return "Constructor: " + line;
+			}
+		}
+
+		return "";
+	}
+
+	private static String traceFilledNewArray(String[] fileContentArray, int index, String line) {
+		// Format: filled-new-array {v0, v1, v2}, [Ljava/lang/String;
+		// Extract the array elements and try to resolve them
+		int startBrace = line.indexOf('{');
+		int endBrace = line.indexOf('}');
+
+		if (startBrace < 0 || endBrace < 0) {
+			return "";
+		}
+
+		String registerStr = line.substring(startBrace + 1, endBrace);
+		String[] registers = registerStr.split(",");
+
+		System.out.println("[DEBUG] LoadURL: Tracing filled-new-array with " + registers.length + " elements");
+
+		// Try to resolve the first element (most likely to be the URL/JS string)
+		if (registers.length > 0) {
+			String firstElementReg = registers[0].trim();
+			String resolvedElement = performBackwardSlicing(fileContentArray, index, firstElementReg);
+			if (resolvedElement != null && !resolvedElement.isEmpty() && !resolvedElement.startsWith("UNRESOLVED")) {
+				return resolvedElement;
+			}
+		}
+
+		return "";
+	}
+
 	private static String resolveFromCallersForString(String[] fileContentArray, String methodLine, String paramRegister) {
+		return resolveFromCallersForStringWithContext(fileContentArray, methodLine, paramRegister, new java.util.HashSet<>());
+	}
+
+	private static String resolveFromCallersForStringWithContext(String[] fileContentArray, String methodLine, String paramRegister, java.util.Set<String> visitedMethods) {
 		String descriptor = extractMethodDescriptor(methodLine);
 		if (descriptor.isEmpty()) {
 			System.out.println("[DEBUG] LoadURL: Could not extract method descriptor from: " + methodLine);
 			return "";
 		}
+
+		// Check if we're already visiting this method (prevent infinite recursion)
+		if (visitedMethods.contains(descriptor)) {
+			System.out.println("[DEBUG] LoadURL: Already visiting method: " + descriptor + " (cycle detected)");
+			return "";
+		}
+		visitedMethods.add(descriptor);
+
 		System.out.println("[DEBUG] LoadURL: Looking for callers of method: " + descriptor);
 
 		int paramIndex = getParamIndexFromRegister(methodLine, paramRegister);
@@ -338,7 +532,9 @@ public class LoadURLAnalyzer {
 
 		int methodStart = -1;
 		int callersFound = 0;
-		for (int i = 0; i < fileContentArray.length; i++) {
+		int maxCallers = 10; // Increased from 5 to check more callers
+
+		for (int i = 0; i < fileContentArray.length && callersFound < maxCallers; i++) {
 			String line = fileContentArray[i];
 			if (line == null) {
 				continue;
@@ -360,8 +556,8 @@ public class LoadURLAnalyzer {
 				if (argIndex < regs.length) {
 					String argReg = regs[argIndex];
 					System.out.println("[DEBUG] LoadURL: Tracing argument register: " + argReg);
-					String resolved = traceStringInMethod(fileContentArray, i, methodStart, argReg);
-					if (!resolved.isEmpty()) {
+					String resolved = traceStringInMethodWithContext(fileContentArray, i, methodStart, argReg, visitedMethods);
+					if (!resolved.isEmpty() && !resolved.startsWith("UNRESOLVED")) {
 						System.out.println("[DEBUG] LoadURL: Successfully resolved to: \"" + resolved + "\"");
 						return resolved;
 					}
@@ -376,6 +572,10 @@ public class LoadURLAnalyzer {
 	}
 
 	private static String traceStringInMethod(String[] fileContentArray, int index, int methodStart, String register) {
+		return traceStringInMethodWithContext(fileContentArray, index, methodStart, register, new java.util.HashSet<>());
+	}
+
+	private static String traceStringInMethodWithContext(String[] fileContentArray, int index, int methodStart, String register, java.util.Set<String> visitedMethods) {
 		String currentRegister = register;
 		for (int i = index; i >= methodStart; i--) {
 			String line = fileContentArray[i];
@@ -414,7 +614,7 @@ public class LoadURLAnalyzer {
 		if (currentRegister != null && currentRegister.startsWith("p")) {
 			String callerMethodSig = getEnclosingMethodSignature(fileContentArray, index);
 			System.out.println("[DEBUG] LoadURL: Nested parameter " + currentRegister + " in caller method: " + callerMethodSig);
-			String nestedResolved = resolveFromCallersForString(fileContentArray, callerMethodSig, currentRegister);
+			String nestedResolved = resolveFromCallersForStringWithContext(fileContentArray, callerMethodSig, currentRegister, visitedMethods);
 			if (!nestedResolved.isEmpty()) {
 				System.out.println("[DEBUG] LoadURL: Resolved nested parameter to: \"" + nestedResolved + "\"");
 				return nestedResolved;
@@ -441,6 +641,10 @@ public class LoadURLAnalyzer {
 		}
 		// Filter out strings that are just punctuation
 		if (value.matches("^[^a-zA-Z0-9]+$")) {
+			return false;
+		}
+		// Filter out known log/error messages that aren't useful data
+		if (value.contains("Ignore addJavascriptInterface due to low Android version")) {
 			return false;
 		}
 		return true;
@@ -480,8 +684,19 @@ public class LoadURLAnalyzer {
 		if (methodLine == null || !methodLine.contains("(") || !methodLine.contains(")")) {
 			return "";
 		}
-		String[] parts = methodLine.split("\\s+");
-		return parts.length > 0 ? parts[parts.length - 1].trim() : "";
+		// Split by whitespace, being careful with regex special characters
+		try {
+			String[] parts = methodLine.split("\\s+");
+			return parts.length > 0 ? parts[parts.length - 1].trim() : "";
+		} catch (Exception e) {
+			// If split fails, manually extract method descriptor
+			int openParen = methodLine.indexOf("(");
+			int closeParen = methodLine.lastIndexOf(")");
+			if (openParen >= 0 && closeParen > openParen) {
+				return methodLine.substring(openParen, closeParen + 1);
+			}
+			return "";
+		}
 	}
 
 	private static String[] parseInvokeRegistersFlexible(String line) {
@@ -782,5 +997,166 @@ public class LoadURLAnalyzer {
 			i--;
 		}
 		return "<unknown>";
+	}
+
+	/**
+	 * Finds all callers of a specific method in the code.
+	 *
+	 * @param fileContentArray Array of Smali code lines
+	 * @param targetMethodSig Method signature to find callers for (e.g., "loadUrl(Ljava/lang/String;)V")
+	 * @return Array of invoke lines that call this method
+	 */
+	private static String[] findAllCallers(String[] fileContentArray, String targetMethodSig) {
+		java.util.List<String> callers = new java.util.ArrayList<>();
+
+		// Extract method name from signature
+		String methodName = targetMethodSig.substring(targetMethodSig.indexOf(" ") + 1);
+		methodName = methodName.substring(0, methodName.indexOf("("));
+
+		System.out.println("[DEBUG] LoadURL: Looking for callers of method: " + methodName);
+
+		for (String line : fileContentArray) {
+			if (line != null && line.contains("invoke") && line.contains("->" + methodName)) {
+				callers.add(line);
+				System.out.println("[DEBUG] LoadURL: Found potential caller: " + line.trim());
+			}
+		}
+
+		return callers.toArray(new String[0]);
+	}
+
+	/**
+	 * Finds the index of a line in the file content array.
+	 *
+	 * @param fileContentArray Array of Smali code lines
+	 * @param targetLine The line to find
+	 * @return Index of the line, or -1 if not found
+	 */
+	private static int findLineIndex(String[] fileContentArray, String targetLine) {
+		for (int i = 0; i < fileContentArray.length; i++) {
+			if (fileContentArray[i] != null && fileContentArray[i].equals(targetLine)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Finds the start of the method containing the given line index.
+	 *
+	 * @param fileContentArray Array of Smali code lines
+	 * @param index Index within the method
+	 * @return Index of the .method line, or -1 if not found
+	 */
+	private static int findMethodStart(String[] fileContentArray, int index) {
+		for (int i = index; i >= 0; i--) {
+			String line = fileContentArray[i];
+			if (line != null && line.contains(METHOD_MARKER)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Tries to resolve a parameter by tracing it to field assignments.
+	 * Looks for iput-object or similar that stores the parameter to a field.
+	 */
+	private static String traceParameterToField(String[] fileContentArray, int index, String methodSig, String paramRegister) {
+		System.out.println("[DEBUG] LoadURL: Strategy 2 - Looking for field assignments with " + paramRegister);
+
+		// Find the method start
+		int methodStart = findMethodStart(fileContentArray, index);
+		if (methodStart < 0) return "";
+
+		// Look for iput/iput-object with this parameter
+		for (int i = methodStart; i < index; i++) {
+			String line = fileContentArray[i];
+			if (line != null && line.contains("iput") && line.contains(paramRegister)) {
+				System.out.println("[DEBUG] LoadURL: Found field assignment with " + paramRegister + ": " + line.trim());
+				// Try to extract field type/value
+				String fieldInfo = extractFieldFromIput(line);
+				if (!fieldInfo.isEmpty()) {
+					return fieldInfo;
+				}
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Tries to resolve a parameter by tracing it through method calls.
+	 * Looks for method calls that take this parameter and return string.
+	 */
+	private static String traceParameterThroughMethods(String[] fileContentArray, int index, String methodSig, String paramRegister) {
+		System.out.println("[DEBUG] LoadURL: Strategy 3 - Looking for method calls using " + paramRegister);
+
+		// Find the method start
+		int methodStart = findMethodStart(fileContentArray, index);
+		if (methodStart < 0) return "";
+
+		// Look for invoke instructions that use this parameter
+		for (int i = methodStart; i < index; i++) {
+			String line = fileContentArray[i];
+			if (line != null && line.contains("invoke") && line.contains(paramRegister)) {
+				System.out.println("[DEBUG] LoadURL: Found invoke using " + paramRegister + ": " + line.trim());
+
+				// Extract the return value register
+				String returnReg = extractReturnRegisterFromInvoke(line);
+				if (!returnReg.isEmpty()) {
+					// Try to trace what's returned
+					String returnValue = performBackwardSlicing(fileContentArray, i, returnReg);
+					if (!returnValue.isEmpty() && !returnValue.startsWith("UNRESOLVED")) {
+						return returnValue;
+					}
+				}
+			}
+		}
+
+		return "";
+	}
+
+	/**
+	 * Extracts field information from an iput instruction.
+	 */
+	private static String extractFieldFromIput(String line) {
+		try {
+			// Format: iput-object p1, p0, Lcom/example/Class;->fieldName:Ljava/lang/String;
+			int fieldStart = line.lastIndexOf("Lcom");
+			if (fieldStart < 0) fieldStart = line.lastIndexOf("Landroid");
+
+			if (fieldStart >= 0) {
+				int fieldEnd = line.length();
+				String fieldRef = line.substring(fieldStart, fieldEnd).trim();
+				System.out.println("[DEBUG] LoadURL: Extracted field reference: " + fieldRef);
+				return fieldRef;
+			}
+		} catch (Exception e) {
+			// Silent failure
+		}
+		return "";
+	}
+
+	/**
+	 * Extracts the return register from an invoke instruction.
+	 */
+	private static String extractReturnRegisterFromInvoke(String line) {
+		try {
+			// The return value is typically in the first register of the invoke
+			int braceStart = line.indexOf('{');
+			int braceEnd = line.indexOf('}');
+
+			if (braceStart >= 0 && braceEnd > braceStart) {
+				String regs = line.substring(braceStart + 1, braceEnd).trim();
+				String[] parts = regs.split(",");
+				if (parts.length > 0) {
+					return parts[0].trim();
+				}
+			}
+		} catch (Exception e) {
+			// Silent failure
+		}
+		return "";
 	}
 }
