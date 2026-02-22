@@ -5,13 +5,124 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f4e95812-d293-408a-80d7-c31a1715fbb0" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/BATCH_PROCESSING_COMPLETE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BATCH_PROCESSING_GUIDE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BATCH_PROCESSING_QUICKREF.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/BATCH_VERIFICATION.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CHECKLIST_ENRICHMENT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/COMPILATION_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/COMPILER_CONFIG_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/COMPLETE_SOLUTION.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CORRELATION_FEATURE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DATA_REFERENCE_GUIDE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DIAGNOSTIC_RUN.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DOCUMENTATION_INDEX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DYNAMIC_ANALYSIS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DYNAMIC_ANALYSIS_ENRICHMENT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DYNAMIC_ANALYSIS_IMPROVEMENTS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DYNAMIC_ANALYSIS_QUICKSTART.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DYNAMIC_ENRICHMENT_QUICK_REF.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ENRICHMENT_ACHIEVEMENT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ENRICHMENT_ANALYSIS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_COMPILATION_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_COMPLETION.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_ERROR_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_SDK_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_SOLUTION_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_STATUS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_SUCCESS.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FINAL_VALIDATION.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FIX_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/IMPLEMENTATION_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/INDEX_ENRICHMENT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MANIFEST.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/MASTER_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PHASE1_DOCUMENTATION_INDEX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PHASE1_FINAL_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PHASE1_IMPLEMENTATION_COMPLETE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PHASE1_QUICK_START.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SDK_FIX_QUICK_REF.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SDK_PATCH_COMPLETE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SDK_VERSION_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/STATIC_VS_RUNTIME_SOLUTION.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SYNTAX_ERROR_FIXED.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TEST_STATIC_ENRICHMENT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/VERIFICATION_COMPLETE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/WEBVIEW_DETECTION_FIX.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/WEBVIEW_FIX_SUMMARY.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/WHAT_WAS_ACHIEVED.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/db/ResolutionConfidence.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/AndroidManifestInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/CommandRunner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/DynamicAnalysisCLI.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/DynamicAnalysisEnricher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/FragmentHostResolver.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/IntentExtrasScanner.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/IntentOverrides.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/IntentOverridesInspector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/RuntimeLoggerSmali.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/SmaliInstrumenter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/WebViewCorrelator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/dynamic/WebViewDbReader.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database/Intent.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/Database/Intent.sqlite" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/potsdam/bridge/JavascriptInterfaceAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/potsdam/bridge/JavascriptInterfaceAnalyzer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/potsdam/db/LoadUrlDB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/potsdam/db/LoadUrlDB.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/potsdam/loadurl/LoadURLAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/potsdam/loadurl/LoadURLAnalyzer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/Slicer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/de/potsdam/slicer/Slicer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/ApplicationDetails/ApplicationDetails.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/ApplicationDetails/ApplicationDetails.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/Logging/IIFALogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/Logging/IIFALogger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/ManifestParser/ManifestParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/ManifestParser/ManifestParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/SmaliContent/SmaliContent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/SmaliContent/SmaliContent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/bridge/JavascriptInterfaceAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/bridge/JavascriptInterfaceAnalyzer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/constants/GenericConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/constants/GenericConstants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/constants/SmaliPrototype.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/constants/SmaliPrototype.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/db/LoadUrlDB.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/db/LoadUrlDB.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/evaluateJavascript/EvaluateJavaScriptHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/evaluateJavascript/EvaluateJavaScriptHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/extract/ApkToolHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/extract/ApkToolHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/extract/CollectClasses.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/extract/CollectClasses.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/extract/ExtractFilesFromDirectory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/extract/ExtractFilesFromDirectory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/extract/InputApkFileContainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/extract/InputApkFileContainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/loadurl/LoadURLAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/loadurl/LoadURLAnalyzer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/loadurl/StringOptimizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/loadurl/StringOptimizer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/main/ApplicationAnalysis.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/main/ApplicationAnalysis.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/main/ExtractJSFromLoadURL.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/main/ExtractJSFromLoadURL.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/main/IIFACommandLineInterface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/main/IIFACommandLineInterface.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/SliceBase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/SliceBase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/SliceClass.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/SliceClass.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/SliceControlFlow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/SliceControlFlow.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/SliceMethod.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/SliceMethod.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/SliceVar.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/SliceVar.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/SliceVarUse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/SliceVarUse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/de/potsdam/slicer/Slicer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/mmmi/se/sdu/slicer/Slicer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/jsdownloader/JSDownloader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/jsdownloader/JSDownloader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/ApplicationDetails/ApplicationDetails.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/Logging/IIFALogger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/ManifestParser/ManifestParser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/SmaliContent/SmaliContent.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/bridge/JavascriptInterfaceAnalyzer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/constants/GenericConstants.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/constants/SmaliPrototype.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/db/LoadUrlDB.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/evaluateJavascript/EvaluateJavaScriptHandler.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/extract/ApkToolHandler.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/extract/CollectClasses.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/extract/ExtractFilesFromDirectory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/extract/InputApkFileContainer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/loadurl/LoadURLAnalyzer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/loadurl/StringOptimizer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/main/ApplicationAnalysis.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/main/ExtractJSFromLoadURL.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/main/IIFACommandLineInterface$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/main/IIFACommandLineInterface$CliOptions.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/main/IIFACommandLineInterface.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/SliceBase.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/SliceClass.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/SliceControlFlow.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/SliceMethod.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/SliceVar.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/SliceVarUse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/de/potsdam/slicer/Slicer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/jsdownloader/JSDownloader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/jsdownloader/JSDownloader.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +149,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -110,7 +225,9 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Application.DynamicAnalysisCLI.executor&quot;: &quot;Run&quot;,
     &quot;Application.IIFACommandLineInterface.executor&quot;: &quot;Run&quot;,
+    &quot;Application.mmmi.se.sdu.main.IIFACommandLineInterface.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
@@ -134,7 +251,21 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.DynamicAnalysisCLI">
+    <configuration name="DynamicAnalysisCLI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="mmmi.se.sdu.dynamic.DynamicAnalysisCLI" />
+      <module name="HybridAppAnalysis" />
+      <option name="PROGRAM_PARAMETERS" value="--apk-dir apps/ --db Database/Intent.sqlite --zipalign $USER_HOME$/Library/Android/sdk/build-tools/35.0.1/zipalign --apksigner $USER_HOME$/Library/Android/sdk/build-tools/35.0.1/apksigner" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="mmmi.se.sdu.dynamic.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="IIFACommandLineInterface" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="de.potsdam.main.IIFACommandLineInterface" />
       <module name="HybridAppAnalysis" />
@@ -149,6 +280,26 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="mmmi.se.sdu.main.IIFACommandLineInterface" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="mmmi.se.sdu.main.IIFACommandLineInterface" />
+      <module name="HybridAppAnalysis" />
+      <option name="PROGRAM_PARAMETERS" value="apps/" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="mmmi.se.sdu.main.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.DynamicAnalysisCLI" />
+        <item itemvalue="Application.mmmi.se.sdu.main.IIFACommandLineInterface" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -182,7 +333,9 @@
       <workItem from="1771527063680" duration="849000" />
       <workItem from="1771528101286" duration="1140000" />
       <workItem from="1771530039629" duration="84000" />
-      <workItem from="1771579108065" duration="22616000" />
+      <workItem from="1771579108065" duration="30261000" />
+      <workItem from="1771753540456" duration="15623000" />
+      <workItem from="1771776779579" duration="6855000" />
     </task>
     <servers />
   </component>
@@ -233,6 +386,16 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.io.IOException" package="java.io" />
+          <option name="timeStamp" value="3" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/com/potsdam/Logging/IIFALogger.java">

@@ -12,7 +12,7 @@ import java.util.StringTokenizer;
 import java.io.*;
 import java.util.*;
 
-import de.potsdam.constants.GenericConstants;
+import mmmi.se.sdu.constants.GenericConstants;
 
 public class JSDownloader {
 	
